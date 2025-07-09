@@ -2,6 +2,9 @@ import allure
 from pages.base_page import BasePage
 from locators import MainPageLocators
 from seletools.actions import drag_and_drop
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import WebDriverWait
 
 class MainPage(BasePage):
 
@@ -27,7 +30,21 @@ class MainPage(BasePage):
 
     @allure.step("Закрываем окно деталей ингредиента")
     def close_ingredient_details(self):
-        self.click(MainPageLocators.CLOSE_POP_UP_INGREDIENT_DETAILS_BUTTON)
+        # 1. Ждём исчезновения оверлея (если он есть)
+        overlay_locator = (By.CSS_SELECTOR, "div[class*='modal_overlay']")
+        try:
+            WebDriverWait(self.driver, 10).until(
+                EC.invisibility_of_element_located(overlay_locator)
+            )
+        except Exception:
+            pass  # Если оверлея нет — продолжаем
+        # 2. Ждём кликабельности кнопки
+        close_btn_locator = MainPageLocators.CLOSE_POP_UP_INGREDIENT_DETAILS_BUTTON
+        WebDriverWait(self.driver, 10).until(
+            EC.element_to_be_clickable(close_btn_locator)
+        )
+        # 3. Обычный клик
+        self.click(close_btn_locator)
         assert self.is_ingredient_details_closed(), "Модальное окно не закрылось после клика по крестику"
 
     def is_ingredient_details_closed(self):

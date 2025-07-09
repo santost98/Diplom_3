@@ -19,6 +19,24 @@ class BasePage:
             EC.presence_of_element_located(locator)
         )
 
+    @allure.step("Ожидаем видимость элемента: {locator}")
+    def wait_for_visibility(self, locator, timeout=10):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.visibility_of_element_located(locator)
+        )
+
+    @allure.step("Ожидаем, что элемент станет невидимым: {locator}")
+    def wait_for_invisibility(self, locator, timeout=10):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.invisibility_of_element_located(locator)
+        )
+
+    @allure.step("Ожидаем, что элемент станет кликабельным: {locator}")
+    def wait_for_clickable(self, locator, timeout=10):
+        return WebDriverWait(self.driver, timeout).until(
+            EC.element_to_be_clickable(locator)
+        )
+
     @allure.step("Ожидаем, пока элемент станет кликабельным: {locator}")
     def find_clickable(self, locator, timeout=10):
         return WebDriverWait(self.driver, timeout).until(
@@ -69,3 +87,13 @@ class BasePage:
     @allure.step("Получаем текущий URL")
     def get_current_url(self):
         return self.driver.current_url
+
+    @allure.step("Ожидаем, что текст элемента {locator} изменится с '{old_text}'")
+    def wait_for_text_change(self, locator, old_text, timeout=10):
+        def text_changed(driver):
+            try:
+                element = driver.find_element(*locator)
+                return element.text.strip() != str(old_text)
+            except Exception:
+                return False
+        WebDriverWait(self.driver, timeout).until(text_changed)
